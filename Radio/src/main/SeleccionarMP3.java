@@ -1,3 +1,6 @@
+package main;
+
+
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -15,7 +18,6 @@ import org.jaudiotagger.audio.AudioHeader;
 import org.jaudiotagger.audio.exceptions.CannotReadException;
 import org.jaudiotagger.audio.exceptions.InvalidAudioFrameException;
 import org.jaudiotagger.audio.exceptions.ReadOnlyFileException;
-import org.jaudiotagger.tag.FieldKey;
 import org.jaudiotagger.tag.Tag;
 import org.jaudiotagger.tag.TagException;
 
@@ -28,7 +30,6 @@ public class SeleccionarMP3 extends javax.swing.JFrame implements Runnable {
     private static volatile boolean flag;
 
     public SeleccionarMP3() {
-
         setTitle("Seleccionar MP3");
         setResizable(false);
         initComponents();
@@ -82,6 +83,7 @@ public class SeleccionarMP3 extends javax.swing.JFrame implements Runnable {
 
             if (coin) {
                 iniciar();
+
             } else {
                 jFileChooser1.setSelectedFile(new File(""));
                 JOptionPane.showMessageDialog(null, "Esto no es un archivo .MP3", "Error de Lectura", JOptionPane.ERROR_MESSAGE);
@@ -93,46 +95,6 @@ public class SeleccionarMP3 extends javax.swing.JFrame implements Runnable {
 
 
     }//GEN-LAST:event_jFileChooser1ActionPerformed
-
-    public void escuchar(int frames) {
-        try {
-            File archivo = jFileChooser1.getSelectedFile();
-            apl = new Player(new FileInputStream(
-                    archivo));
-            this.dispose();
-            Radio radio = new Radio(apl, hilo, archivo);
-            radio.setVisible(true);
-
-            try {
-                AudioFile cancion = AudioFileIO.read(archivo);
-                Tag tag = cancion.getTag();
-                AudioHeader audio = cancion.getAudioHeader();
-                int duracion = audio.getTrackLength();
-                int minutos = duracion / 60;
-                int segundos = duracion % 60;
-                System.out.println("Duracion: " + minutos+":"+segundos);
-            } catch (CannotReadException ex) {
-                System.out.println("No se puede leer");
-            } catch (IOException ex) {
-                System.out.println("Error con el archivo");
-            } catch (TagException ex) {
-                System.out.println("Error con el tag");
-            } catch (ReadOnlyFileException ex) {
-                System.out.println("Solamente se puede leer");
-            } catch (InvalidAudioFrameException ex) {
-                System.out.println("Error de audio");
-            }
-            while (flag) {
-                apl.play();
-            }
-
-        } catch (FileNotFoundException ex) {
-            JOptionPane.showMessageDialog(null, "Archivo no encontrado", "Error de Archivo", JOptionPane.ERROR_MESSAGE);
-        } catch (JavaLayerException ex) {
-            JOptionPane.showMessageDialog(null, "Error al reproducir", "Error de Archivo", JOptionPane.ERROR_MESSAGE);
-
-        }
-    }
 
     public static void main(String args[]) {
         /* Set the Nimbus look and feel */
@@ -172,8 +134,26 @@ public class SeleccionarMP3 extends javax.swing.JFrame implements Runnable {
 
     @Override
     public void run() {
-        escuchar(0);
 
+        try {
+            File archivo = jFileChooser1.getSelectedFile();
+            apl = new Player(new FileInputStream(
+                    archivo));
+            this.dispose();
+            Radio radio = new Radio(apl, hilo, archivo);
+            radio.setVisible(true);
+
+            while (flag) {
+             
+                apl.play();
+
+            }
+        } catch (FileNotFoundException ex) {
+            JOptionPane.showMessageDialog(null, "Archivo no encontrado", "Error de Archivo", JOptionPane.ERROR_MESSAGE);
+        } catch (JavaLayerException ex) {
+            JOptionPane.showMessageDialog(null, "Error al reproducir", "Error de Archivo", JOptionPane.ERROR_MESSAGE);
+
+        }
     }
 
     public void iniciar() {
@@ -181,12 +161,36 @@ public class SeleccionarMP3 extends javax.swing.JFrame implements Runnable {
         hilo.start();
     }
 
-    public static boolean isFlag() {
+    public synchronized static boolean isFlag() {
         return flag;
     }
 
     public static void setFlag(boolean flag) {
         SeleccionarMP3.flag = flag;
     }
+
+    public static int getInfoCancion(File archivo) {
+        int duracion = 0;
+        try {
+            AudioFile cancion = AudioFileIO.read(archivo);
+            Tag tag = cancion.getTag();
+            AudioHeader audio = cancion.getAudioHeader();
+            duracion = audio.getTrackLength();
+
+        } catch (CannotReadException ex) {
+            System.out.println("No se puede leer");
+        } catch (IOException ex) {
+            System.out.println("Error con el archivo");
+        } catch (TagException ex) {
+            System.out.println("Error con el tag");
+        } catch (ReadOnlyFileException ex) {
+            System.out.println("Solamente se puede leer");
+        } catch (InvalidAudioFrameException ex) {
+            System.out.println("Error de audio");
+        }
+        return duracion;
+    }
+
+
 
 }
